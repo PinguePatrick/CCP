@@ -13,7 +13,13 @@ const JR_BASE = (() => {
 
 async function _jrPing() {
   try {
-    const r = await fetch(JR_BASE + "/health", { signal: AbortSignal.timeout(2500) });
+    // POST /ask with a trivial ping; the hub doesn't expose /health
+    const r = await fetch(JR_BASE + "/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: "ping" }),
+      signal: AbortSignal.timeout(4000),
+    });
     return r.ok ? "LIVE" : "DEGRADED";
   } catch {
     return "OFFLINE";
@@ -120,6 +126,15 @@ document.addEventListener("DOMContentLoaded", () => {
         b.style.color = live ? "#39d4b8" : "#7a7a85";
       }
     });
+
+    // Post a live greeting (or offline notice) to the chat
+    if (typeof addChatMessage === "function") {
+      if (live) {
+        addChatMessage("Jr", "Cockpit connected to JrSeedOsX at 100.115.17.86. Type anything to talk to me.", []);
+      } else {
+        addChatMessage("Jr", "Could not reach JrSeedOsX. Check that the SSH tunnel is running: <code>ssh -L 7907:localhost:7907 jr@100.115.17.86 -N</code>", []);
+      }
+    }
 
     // Poll every 30 s
     setInterval(async () => {
