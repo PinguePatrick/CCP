@@ -8,7 +8,10 @@
 
 const JR_BASE = (() => {
   const o = window.location.origin;
-  return o === "null" || o.startsWith("file:") ? "http://127.0.0.1:7907" : "";
+  // Same origin as the hub: use relative paths (served BY the hub)
+  if (o === "http://127.0.0.1:7907" || o === "http://100.115.17.86:7907") return "";
+  // Everything else (file://, local dev server, etc.): hit the hub directly
+  return "http://127.0.0.1:7907";
 })();
 
 async function _jrPing() {
