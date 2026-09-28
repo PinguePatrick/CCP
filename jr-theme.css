@@ -23,3 +23,17 @@
   --red:    #f85149;
   --purple: #bc8cff;
 }
+
+/* data bar centering in status bar */
+.statusbar {
+  display: flex;
+  align-items: center;
+}
+.status-center {
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}

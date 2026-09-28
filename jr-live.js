@@ -75,6 +75,27 @@ Services.cell.command = async function (cmd) {
   return res.text;
 };
 
+// --- data bar: live system readings from /state.json panel ---
+
+async function _refreshDataBar() {
+  const bar = document.getElementById("jr-databar");
+  if (!bar) return;
+  try {
+    const r = await fetch(JR_BASE + "/state.json", { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) { bar.textContent = ""; return; }
+    const d = await r.json();
+    const panel = Array.isArray(d.panel) ? d.panel : [];
+    // Pick up to 6 readings that have real text (not "not provided")
+    const picks = panel
+      .filter((p) => p.text && p.text !== "not provided" && p.text !== "unreadable")
+      .slice(0, 6);
+    bar.textContent = picks.map((p) => p.text).join(" · ");
+    bar.style.color = "var(--text-3)";
+  } catch {
+    bar.textContent = "";
+  }
+}
+
 // --- live status overlay on DOMContentLoaded ---
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -82,6 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(async () => {
     const status = await _jrPing();
     const live = status === "LIVE";
+
+    // Data bar — load immediately then every 30s
+    _refreshDataBar();
+    setInterval(_refreshDataBar, 30000);
 
     // Remove or update SIMULATED badges
     document.querySelectorAll(".simulation-badge").forEach((el) => {
